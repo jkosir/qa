@@ -1,29 +1,22 @@
-<h3>
-  Angular 2 Seed
-</h3>
-<nav>
-	<a [routerLink]=" ['/Home'] ">
-    Home
-  </a>
-  |
-	<a [routerLink]=" ['/About'] ">
-    About
-  </a>
-  |
-	<a [routerLink]=" ['/RepoBrowser/RepoList', {org: 'angular'}] ">
-    Github Repos
-  </a>
-  |
-  <a [routerLink]=" ['/Chart']">
-    Github Repos
-  </a>
-</nav>
-
-<main>
-	<router-outlet></router-outlet>
-</main>
-
-
-<footer>
-  © 2016
-</footer>
+<!-- Uses a header that scrolls with the text, rather than staying
+  locked at the top -->
+<div mdl class="mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--scroll">
+    <div class="mdl-layout__header-row">
+      <!-- Title -->
+      <span class="mdl-layout-title">Quadrant analysis</span>
+      <!-- Add spacer, to align navigation to the right -->
+      <div class="mdl-layout-spacer"></div>
+      <!-- Navigation -->
+    </div>
+  </header>
+  <main class="mdl-layout__content">
+    <div class="page-content">
+      <div class="mdl-grid">
+        <div class="mdl-cell mdl-cell--8-col">
+          <qa></qa>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

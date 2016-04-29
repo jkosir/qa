@@ -1,36 +1,42 @@
-import {Component, Directive, Attribute, ElementRef} from 'angular2/core';
-import * as d3 from 'd3';
-import {ViewEncapsulation} from "angular2/core";
-import {ActivityService} from "../../services/activity";
-import {Observable} from "rxjs/Observable";
-import {Subscription} from "rxjs/Subscription";
-import * as _ from 'underscore';
+import {Component, ViewEncapsulation, OnInit, ElementRef, Inject, Input} from "angular2/core";
+import * as d3 from "d3";
+import {ActivityService, AepfCpv} from "../../services/activity";
+import * as _ from "underscore";
+import {BrushService} from "../../services/viewport";
+import Linear = d3.scale.Linear;
+var crossfilter = require('crossfilter');
 
 @Component({
   selector: 'chart',
-  templateUrl: 'app/components/chart/chart.html',
+  template: '',
   styleUrls: ['app/components/chart/chart.css'],
-  providers: [ActivityService],
   encapsulation: ViewEncapsulation.None,
 })
-export class Chart {
-  data:Array<any>;
+export class Chart implements OnInit {
+  data:AepfCpv[];
+  fullData:AepfCpv[];
+
   MARGIN = {top: 20, right: 15, bottom: 60, left: 60};
   WIDTH = 960 - this.MARGIN.left - this.MARGIN.right;
   HEIGHT = 500 - this.MARGIN.top - this.MARGIN.bottom;
 
+  graphics;
+  xScale:Linear;
+  yScale:Linear;
 
-  constructor(public service:ActivityService) {
-    this.service = service;
-  }
+  distanceFilter;
 
-  ngOnInit() {
 
-    let x = d3.scale.linear().domain([0, 3]).range([0, this.WIDTH]);
+  AEPF_DIST = 4;
+  CPV_DIST = 0.1;
+  COLOURS:Array<String> = ["#3288bd", "#99d594", "#e6f598", "#fee08b", "#fc8d59", "#d53e4f"];
 
-    let y = d3.scale.linear().domain([0, 700]).range([this.HEIGHT, 0]);
+  constructor(public service:ActivityService, public elementRef:ElementRef, public brush:BrushService) {
 
-    let chart = d3.select("body")
+    this.xScale = d3.scale.linear().domain([0, 3]).range([0, this.WIDTH]);
+    this.yScale = d3.scale.linear().domain([0, 700]).range([this.HEIGHT, 0]);
+
+    let chart = d3.select(this.elementRef.nativeElement)
       .append('svg:svg')
       .attr('width', this.WIDTH + this.MARGIN.right + this.MARGIN.left)
       .attr('height', this.HEIGHT + this.MARGIN.top + this.MARGIN.bottom)
@@ -43,7 +49,7 @@ export class Chart {
       .attr('class', 'main');
 
     // draw the x axis
-    let xAxis = d3.svg.axis().scale(x).orient('bottom');
+    let xAxis = d3.svg.axis().scale(this.xScale).orient('bottom');
 
     main.append('g')
       .attr('transform', `translate(0, ${this.HEIGHT})`)
@@ -51,22 +57,74 @@ export class Chart {
       .call(xAxis);
 
     // draw the y axis
-    let yAxis = d3.svg.axis().scale(y).orient('left');
+    let yAxis = d3.svg.axis().scale(this.yScale).orient('left');
 
     main.append('g')
       .attr('transform', 'translate(0,0)')
       .attr('class', 'main axis date')
       .call(yAxis);
 
-    let g = main.append("svg:g");
+    this.graphics = main.append("svg:g");
 
-    this.service.getAepfCpv().map(d=>_.first(d,100)).subscribe(data => {
-      g.selectAll("scatter-dots")
-        .data(data)
-        .enter().append("svg:circle")
-        .attr("cx", d => x(d.cpv))
-        .attr("cy", d => y(d.aepf))
-        .attr("r", 4);
+  }
+
+  linearKernel(p1:AepfCpv, p2:AepfCpv) {
+    return 2 - Math.abs((p1.aepf - p2.aepf)) / this.AEPF_DIST - Math.abs((p1.cpv - p2.cpv)) / this.CPV_DIST;
+  }
+
+  kde(data:Array<AepfCpv>) {
+    data = _.sortBy(data, x => x.aepf);
+    let idx = 0;
+    _.forEach(data, point => {
+      while (point.aepf - this.AEPF_DIST > data[idx].aepf) {
+        idx++;
+      }
+      for (let i = idx; i < data.length && data[i].aepf - point.aepf < this.AEPF_DIST; i++) {
+        if (Math.abs(point.cpv - data[i].cpv) < this.CPV_DIST) {
+          point.c += this.linearKernel(point, data[i]);
+        }
+      }
     });
+    return data;
+  }
+
+  drawChart(data) {
+    data = this.kde(data);
+    let max = _.max(_.pluck(data, 'c'));
+    let colours = d3.scale.pow().exponent(.5)
+      .domain(d3.range(0, max, max / this.COLOURS.length))
+      .range(this.COLOURS);
+
+    this.graphics.selectAll('.qa-dot').remove();
+
+    this.graphics.selectAll("scatter-dots").data(_.sortBy(data, 'c'))
+      .enter().append("svg:circle")
+      .attr('class', 'qa-dot')
+      .attr("cx", d => this.xScale(d.cpv))
+      .attr("cy", d => this.yScale(d.aepf))
+      .attr("r", 3)
+      .attr("fill", d => colours(d.c));
+  }
+
+  ngOnInit() {
+    this.service.getAepfCpv()
+      .map(data => _.map(data, x => {
+        x.distance /= 1000;
+        return x
+      }))
+      .subscribe(data => {
+        this.data = data;
+        this.distanceFilter = crossfilter(data).dimension(d=>d.distance);
+        this.drawChart(data);
+      });
+
+
+    this.brush.viewport.subscribe((viewport:number[]) => {
+      if (viewport[0] == viewport[1]) {
+        this.drawChart(this.data)
+      } else {
+        this.drawChart(this.distanceFilter.filter(viewport).top(Infinity));
+      }
+    })
   }
 }
