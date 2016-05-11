@@ -4,6 +4,8 @@ import {ActivityService, AepfCpv} from "../../services/activity";
 import * as _ from "underscore";
 import {BrushService} from "../../services/viewport";
 import Linear = d3.scale.Linear;
+import {Controls} from "../qa/qa";
+import {BrushEvent} from "../qa/qa";
 var crossfilter = require('crossfilter');
 
 @Component({
@@ -14,15 +16,16 @@ var crossfilter = require('crossfilter');
 })
 export class Chart implements OnInit {
   data:AepfCpv[];
-  fullData:AepfCpv[];
+  @Input() controls:Controls;
+  updateType:string = 'brushend';
 
   MARGIN = {top: 20, right: 15, bottom: 60, left: 60};
   WIDTH = 960 - this.MARGIN.left - this.MARGIN.right;
   HEIGHT = 500 - this.MARGIN.top - this.MARGIN.bottom;
 
   graphics;
-  xScale:Linear;
-  yScale:Linear;
+  xScale;
+  yScale;
 
   distanceFilter;
 
@@ -31,7 +34,7 @@ export class Chart implements OnInit {
   CPV_DIST = 0.1;
   COLOURS:Array<String> = ["#3288bd", "#99d594", "#e6f598", "#fee08b", "#fc8d59", "#d53e4f"];
 
-  constructor(public service:ActivityService, public elementRef:ElementRef, public brush:BrushService) {
+  constructor(public service:ActivityService, public elementRef:ElementRef) {
 
     this.xScale = d3.scale.linear().domain([0, 3]).range([0, this.WIDTH]);
     this.yScale = d3.scale.linear().domain([0, 700]).range([this.HEIGHT, 0]);
@@ -75,7 +78,7 @@ export class Chart implements OnInit {
   kde(data:Array<AepfCpv>) {
     data = _.sortBy(data, x => x.aepf);
     let idx = 0;
-    _.forEach(data, point => {
+    _.forEach(data, (point:AepfCpv) => {
       while (point.aepf - this.AEPF_DIST > data[idx].aepf) {
         idx++;
       }
@@ -108,7 +111,7 @@ export class Chart implements OnInit {
 
   ngOnInit() {
     this.service.getAepfCpv()
-      .map(data => _.map(data, x => {
+      .map(data => _.map(data, (x:AepfCpv) => {
         x.distance /= 1000;
         return x
       }))
@@ -118,13 +121,16 @@ export class Chart implements OnInit {
         this.drawChart(data);
       });
 
+    this.controls.updateType.subscribe(x=>this.updateType = x);
 
-    this.brush.viewport.subscribe((viewport:number[]) => {
-      if (viewport[0] == viewport[1]) {
-        this.drawChart(this.data)
-      } else {
-        this.drawChart(this.distanceFilter.filter(viewport).top(Infinity));
-      }
-    })
+    this.controls.brush
+      .filter((event:BrushEvent) => event.type === this.updateType)
+      .subscribe((event:BrushEvent) => {
+        if (event.viewport[0] == event.viewport[1]) {
+          this.drawChart(this.data)
+        } else {
+          this.drawChart(this.distanceFilter.filter(event.viewport).top(Infinity));
+        }
+      })
   }
 }

@@ -3,6 +3,10 @@ import * as d3 from "d3";
 import * as _ from "underscore";
 import {ActivityService, NavigationChartPoint} from "../../services/activity";
 import {BrushService} from "../../services/viewport";
+import {Input} from "angular2/core";
+import {AepfCpv} from "../../services/activity";
+import {Controls} from "../qa/qa";
+import {BrushEvent} from "../qa/qa";
 
 @Component({
   selector: 'navigation-chart',
@@ -15,8 +19,10 @@ export class NavigationChart implements OnInit {
   WIDTH = 960 - this.margin.left - this.margin.right;
   HEIGHT = 250 - this.margin.top - this.margin.bottom;
 
+  @Input() controls:Controls;
 
-  constructor(public service:ActivityService, public elementRef:ElementRef, public brush:BrushService) {
+
+  constructor(public service:ActivityService, public elementRef:ElementRef) {
   }
 
   ngOnInit() {
@@ -29,7 +35,7 @@ export class NavigationChart implements OnInit {
 
     this.service.getVelocity()
       .map(data => _.filter(data, (val, idx) => idx % 10 == 0)) // Every n-th element
-      .map(data => _.map(data, x => {
+      .map(data => _.map(data, (x:NavigationChartPoint) => {
         x.distance /= 1000;
         return x
       }))
@@ -75,8 +81,9 @@ export class NavigationChart implements OnInit {
           .attr('class', 'line watts').attr('d', wattsLine(data));
 
         // Brush
-        let brush = d3.svg.brush().x(xScale)
-          .on('brushend', () => this.brush.viewport.next(brush.extent()));
+        let brush = d3.svg.brush().x(xScale);
+        brush.on('brushend', () => this.controls.brush.next(new BrushEvent(brush.extent(), 'brushend')));
+        brush.on('brush', () => this.controls.brush.next(new BrushEvent(brush.extent(), 'brush')));
 
         navChart.append("g")
           .attr("class", "brush")
