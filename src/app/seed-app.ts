@@ -10,8 +10,8 @@ require('../../node_modules/material-design-lite/dist/material.css');
   selector: 'app',
   pipes: [],
   providers: [BrushService],
- directives: [QuadrantAnalysis],
-  templateUrl: 'app/seed-app.html'
+  directives: [QuadrantAnalysis],
+  template: require('raw!./seed-app.html')
 })
 export class SeedApp {
 

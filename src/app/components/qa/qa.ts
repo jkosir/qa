@@ -25,7 +25,7 @@ export interface Controls {
 
 @Component({
   selector: 'qa',
-  templateUrl: 'app/components/qa/qa.html',
+  template: require('raw!./qa.html'),
   providers: [ActivityService],
   styleUrls: ['app/components/qa/qa.css'],
   directives: [Chart, NavigationChart, MDL],
