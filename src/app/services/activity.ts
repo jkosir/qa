@@ -42,24 +42,32 @@ export class NavigationChartPoint {
 @Injectable()
 export class ActivityService {
   act_id = 565287513;
+  api;
   private activityLoader:Subject = new Subject();
+  public stravaConnected:boolean = false;
 
   constructor(private http:Http) {
     OAuth.initialize('Zcy9H_R3eAhBKyDr1sO_db3wLcA');
     this.http.get('/app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
-    // this.loadFromStrava(this.act_id);
+    // this.stravaAuth().done(r=>this.loadFromStrava(r,this.act_id));
+  }
+
+  public stravaAuth() {
+    
+    OAuth.popup('strava').done(r=>{
+      this.stravaConnected = true;
+      this.api=r;
+    });
   }
 
   loadFromStrava(activityId) {
     let url = `/v3/activities/${activityId}/streams/watts,cadence,distance,velocity_smooth,altitude`;
-    OAuth.popup('strava').done(result => {
-      result.get(url).done(response => {
-          let data = _.object(_.zip(_.pluck(response, 'type'), _.pluck(response, 'data')));
-          this.activityLoader.next(data);
-        }
-      );
+    this.api.get(url).done(response => {
+      let data = _.object(_.zip(_.pluck(response, 'type'), _.pluck(response, 'data')));
+      this.activityLoader.next(data);
     });
   }
+
 
   getVelocity():Observable<Array<NavigationChartPoint>> {
     return this.activityLoader

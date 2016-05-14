@@ -36,7 +36,7 @@ export class QuadrantAnalysis {
     updateType: new BehaviorSubject('brushend')
   };
 
-  constructor() {
+  constructor(public activity:ActivityService) {
   }
 
   updateTypeChange(event) {
