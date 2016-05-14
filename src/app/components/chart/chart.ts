@@ -16,7 +16,8 @@ var tip = require('d3-tip');
 })
 export class Chart implements OnInit {
   data:AepfCpv[];
-  @Input() controls:Controls;
+  @Input()
+  controls:Controls;
   updateType:string = 'brushend';
   tips;
 
@@ -93,6 +94,30 @@ export class Chart implements OnInit {
 
   }
 
+  drawLines() {
+    // Need to redraw after every points update for svg ordering
+    // FTP curve
+    this.graphics.selectAll('.qa-line').remove();
+    let lineData = _.map(d3.range(0, 3, 0.01), cpv => {
+      return {cpv: cpv, aepf: 18000 / (1.1 * cpv / 0.018)}
+    });
+    lineData = _.filter(lineData, (x) => x.aepf < 700);
+    var line = d3.svg.line()
+      .x(d => this.xScale(d.cpv))
+      .y(d => this.yScale(d.aepf));
+    this.graphics.append('path').attr('class', 'ftp line qa-line').attr('d', line(lineData));
+
+    // Quadrant lines
+    this.graphics.append("line")
+      .attr('class', 'quadrant-line qa-line')
+      .attr("x1", this.xScale(1.5)).attr("x2", this.xScale(1.5))
+      .attr("y1", this.yScale(0)).attr("y2", this.yScale(700));
+    this.graphics.append("line")
+      .attr('class', 'quadrant-line qa-line')
+      .attr("x1", this.xScale(0)).attr("x2", this.xScale(3.0))
+      .attr("y1", this.yScale(200)).attr("y2", this.yScale(200));
+  }
+
   linearKernel(p1:AepfCpv, p2:AepfCpv) {
     return 2 - Math.abs((p1.aepf - p2.aepf)) / this.AEPF_DIST - Math.abs((p1.cpv - p2.cpv)) / this.CPV_DIST;
   }
@@ -130,7 +155,8 @@ export class Chart implements OnInit {
       .attr("r", 3)
       .attr("fill", d => colours(d.c))
       .on('mouseover', this.tips.show)
-      .on('mouseout', this.tips.hide)
+      .on('mouseout', this.tips.hide);
+    this.drawLines();
   }
 
   ngOnInit() {

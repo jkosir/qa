@@ -4,6 +4,19 @@
   fill: none;
 }
 
+.line.ftp {
+  fill: none;
+  stroke: rgba(252, 76, 2, 0.7);
+  stroke-width: 1px;
+}
+
+.quadrant-line {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-dasharray: 10, 10;
+  stroke-width: 1px;
+}
+
 /*
 d3-tip styles
 */

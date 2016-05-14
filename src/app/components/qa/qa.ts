@@ -20,6 +20,7 @@ export class BrushEvent {
 export interface Controls {
   brush:Subject<BrushEvent>;
   updateType:Subject<string>;
+  powerLine:number;
 }
 
 @Component({
@@ -33,7 +34,8 @@ export interface Controls {
 export class QuadrantAnalysis {
   public controls:Controls = {
     brush: new Subject(),
-    updateType: new BehaviorSubject('brushend')
+    updateType: new BehaviorSubject('brushend'),
+    powerLine: 300
   };
 
   constructor(public activity:ActivityService) {
