@@ -30,7 +30,7 @@ export class Chart implements OnInit {
   distanceFilter;
 
 
-  AEPF_DIST = 4;
+  AEPF_DIST = 10;
   CPV_DIST = 0.1;
   COLOURS:Array<String> = ["#3288bd", "#99d594", "#e6f598", "#fee08b", "#fc8d59", "#d53e4f"];
 
@@ -58,6 +58,22 @@ export class Chart implements OnInit {
       .attr('transform', `translate(0, ${this.HEIGHT})`)
       .attr('class', 'main axis date')
       .call(xAxis);
+
+    // Axes titles
+    main.append("text")
+      .attr("class", "y label")
+      .attr("text-anchor", "end")
+      .attr("y", 6)
+      .attr("dy", ".75em")
+      .attr("transform", "rotate(-90)")
+      .text("Average effective pedal force [N]");
+
+    main.append("text")
+      .attr("class", "x label")
+      .attr("text-anchor", "end")
+      .attr("x", this.WIDTH)
+      .attr("y", this.HEIGHT - 6)
+      .text("Circumferential pedal velocity [m/s]");
 
     // draw the y axis
     let yAxis = d3.svg.axis().scale(this.yScale).orient('left');

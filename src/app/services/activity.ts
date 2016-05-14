@@ -2,6 +2,9 @@ import {Injectable} from 'angular2/core';
 import {Http} from 'angular2/http';
 import * as _ from 'underscore';
 import {Observable} from "rxjs/Observable";
+import {Subject} from "rxjs/Subject";
+
+var OAuth = require('oauthio-web').OAuth;
 
 export class AepfCpv {
   aepf:number;
@@ -33,13 +36,28 @@ export class NavigationChartPoint {
 
 @Injectable()
 export class ActivityService {
+  act_id = 565287513;
+  private activityLoader:Subject = new Subject();
 
   constructor(private http:Http) {
+    OAuth.initialize('Zcy9H_R3eAhBKyDr1sO_db3wLcA');
+    this.http.get('/app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
+    // this.loadFromStrava(this.act_id);
+  }
+
+  loadFromStrava(activityId) {
+    let url = `/v3/activities/${activityId}/streams/watts,cadence,distance,velocity_smooth,altitude`;
+    OAuth.popup('strava').done(result => {
+      result.get(url).done(response => {
+          let data = _.object(_.zip(_.pluck(response, 'type'), _.pluck(response, 'data')));
+          this.activityLoader.next(data);
+        }
+      );
+    });
   }
 
   getVelocity():Observable<Array<NavigationChartPoint>> {
-    return this.http.get('/app/data/act.json')
-      .map(data => data.json())
+    return this.activityLoader
       .map(data => _.map(_.zip(data['distance'], data['velocity_smooth'], data['altitude'], data['watts']),
         x => new NavigationChartPoint(x[0], x[1], x[2], x[3])
       ))
@@ -49,8 +67,7 @@ export class ActivityService {
     // Convert watts and cadence to average effective pedal force and circumferential pedal velocity
     // Assume crank length of 172.5mm
 
-    return this.http.get('/app/data/act.json')
-      .map(data => data.json())
+    return this.activityLoader
       // Convert to AEPF/CPV
       .map(data =>
         _.map(_.zip(data['watts'], data['cadence'], data['distance']), x => new AepfCpv(

@@ -3,7 +3,6 @@ import {NavigationChart} from "../navigation/navigation";
 import {Chart} from "../chart/chart";
 import {ActivityService} from "../../services/activity";
 import {Subject} from "rxjs/Subject";
-import {Observable} from "rxjs/Observable";
 import {BehaviorSubject} from "rxjs/Rx";
 import {MDL} from "../../mdl";
 

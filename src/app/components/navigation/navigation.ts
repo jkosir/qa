@@ -40,6 +40,11 @@ export class NavigationChart implements OnInit {
         return x
       }))
       .subscribe(data => {
+        // Remove navigation chart data so it doesn't persist on activity refresh
+        d3.select('.xAxis').remove();
+        d3.select('.line.speed').remove();
+        d3.select('.line.watts').remove();
+        d3.select('.altitude').remove();
 
         let xScale = d3.scale.linear()
           .domain([0, d3.max(_.pluck(data, 'distance'))])
@@ -48,7 +53,7 @@ export class NavigationChart implements OnInit {
         let xAxis = d3.svg.axis().scale(xScale).orient('bottom').tickFormat(d=>d + ' km');
 
         navChart.append('g').attr('transform', `translate(0, ${this.HEIGHT})`)
-          .attr('class', 'axis')
+          .attr('class', 'xAxis axis')
           .call(xAxis);
 
         // Altitude
@@ -58,7 +63,7 @@ export class NavigationChart implements OnInit {
           .x((d:NavigationChartPoint) => xScale(d.distance))
           .y0(this.HEIGHT).y1((d:NavigationChartPoint) => altitudeScale(d.altitude));
 
-        navChart.append('path').attr('class', 'data').attr('d', altitudeData(data));
+        navChart.append('path').attr('class', 'altitude').attr('d', altitudeData(data));
 
         // Velocity
         let velocityScale = d3.scale.linear().domain([0, d3.max(_.pluck(data, 'velocity'))]).range([this.HEIGHT / 2, 0]);
