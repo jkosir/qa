@@ -2,11 +2,11 @@ import {Component, ViewEncapsulation, OnInit, ElementRef, Inject, Input} from "a
 import * as d3 from "d3";
 import {ActivityService, AepfCpv} from "../../services/activity";
 import * as _ from "underscore";
-import {BrushService} from "../../services/viewport";
 import Linear = d3.scale.Linear;
 import {Controls} from "../qa/qa";
 import {BrushEvent} from "../qa/qa";
 var crossfilter = require('crossfilter');
+var tip = require('d3-tip');
 
 @Component({
   selector: 'chart',
@@ -18,6 +18,7 @@ export class Chart implements OnInit {
   data:AepfCpv[];
   @Input() controls:Controls;
   updateType:string = 'brushend';
+  tips;
 
   MARGIN = {top: 20, right: 15, bottom: 60, left: 60};
   WIDTH = 960 - this.MARGIN.left - this.MARGIN.right;
@@ -50,6 +51,11 @@ export class Chart implements OnInit {
       .attr('width', this.WIDTH)
       .attr('height', this.HEIGHT)
       .attr('class', 'main');
+
+    // Tips
+    this.tips = tip(d3).attr('class', 'd3-tip').html(d=>`Power: ${d.power} W<br>Cadence: ${d.cadence}`)
+      .direction('n').offset([-5, 0]);
+    main.call(this.tips);
 
     // draw the x axis
     let xAxis = d3.svg.axis().scale(this.xScale).orient('bottom');
@@ -122,7 +128,9 @@ export class Chart implements OnInit {
       .attr("cx", d => this.xScale(d.cpv))
       .attr("cy", d => this.yScale(d.aepf))
       .attr("r", 3)
-      .attr("fill", d => colours(d.c));
+      .attr("fill", d => colours(d.c))
+      .on('mouseover', this.tips.show)
+      .on('mouseout', this.tips.hide)
   }
 
   ngOnInit() {
