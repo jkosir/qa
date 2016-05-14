@@ -11,13 +11,18 @@ export class AepfCpv {
   cpv:number;
   distance:number;
   c:number;
+  power:number;
+  cadence:number;
 
-  constructor(aepf:number, cpv:number, distance:number) {
+  constructor(aepf:number, cpv:number, distance:number, power:number, cadence:number) {
     this.aepf = aepf;
     this.cpv = cpv;
     this.distance = distance;
     this.c = 0;
+    this.power = power;
+    this.cadence = cadence;
   }
+
 }
 export class NavigationChartPoint {
   distance:number;
@@ -73,7 +78,9 @@ export class ActivityService {
         _.map(_.zip(data['watts'], data['cadence'], data['distance']), x => new AepfCpv(
           (x[0] * 60) / (x[1] * 2 * Math.PI * 0.1725),
           x[1] * 0.1725 * 2 * Math.PI / 60,
-          x[2]
+          x[2],
+          x[0],
+          x[1]
         ))
       )
       // Filter NaN and Infinity
