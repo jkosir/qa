@@ -41,20 +41,21 @@ export class NavigationChartPoint {
 
 @Injectable()
 export class ActivityService {
-  act_id = 565287513;
-  api;
-  private activityLoader:Subject = new Subject();
+  private api:any;
+  private activityLoader:Subject<any> = new Subject();
   public stravaConnected:boolean = false;
+  public user:any;
 
   constructor(private http:Http) {
     OAuth.initialize('Zcy9H_R3eAhBKyDr1sO_db3wLcA');
     this.http.get('/app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
   }
 
-  public stravaAuth() {    
+  public stravaAuth() {
     OAuth.popup('strava').done(r=>{
       this.stravaConnected = true;
       this.api=r;
+      r.me().done(response=>this.user=response);
     });
   }
 
@@ -80,7 +81,7 @@ export class ActivityService {
 
     return this.activityLoader
       // Convert to AEPF/CPV
-      .map(data =>
+      .map((data:Array<AepfCpv>) =>
         _.map(_.zip(data['watts'], data['cadence'], data['distance']), x => new AepfCpv(
           (x[0] * 60) / (x[1] * 2 * Math.PI * 0.1725),
           x[1] * 0.1725 * 2 * Math.PI / 60,
@@ -90,6 +91,6 @@ export class ActivityService {
         ))
       )
       // Filter NaN and Infinity
-      .map(data => _.filter(data, x => _.isFinite(x.aepf) && _.isFinite(x.cpv)))
+      .map((data:Array<AepfCpv>) => _.filter(data, x => _.isFinite(x.aepf) && _.isFinite(x.cpv)))
   }
 }

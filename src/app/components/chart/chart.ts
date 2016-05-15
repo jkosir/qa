@@ -2,9 +2,9 @@ import {Component, ViewEncapsulation, OnInit, ElementRef, Inject, Input} from "a
 import * as d3 from "d3";
 import {ActivityService, AepfCpv} from "../../services/activity";
 import * as _ from "underscore";
-import Linear = d3.scale.Linear;
 import {Controls} from "../qa/qa";
 import {BrushEvent} from "../qa/qa";
+import {isNumber} from "angular2/src/facade/lang";
 var crossfilter = require('crossfilter');
 var tip = require('d3-tip');
 
@@ -17,14 +17,18 @@ var tip = require('d3-tip');
 export class Chart implements OnInit {
   data:AepfCpv[];
   @Input()
+
   controls:Controls;
   updateType:string = 'brushend';
-  tips;
+  private cadenceLine = 90;
+  private powerLine = 280;
+
 
   MARGIN = {top: 20, right: 15, bottom: 60, left: 60};
   WIDTH = 960 - this.MARGIN.left - this.MARGIN.right;
   HEIGHT = 500 - this.MARGIN.top - this.MARGIN.bottom;
 
+  tips:any;
   graphics;
   xScale;
   yScale;
@@ -99,23 +103,21 @@ export class Chart implements OnInit {
     // FTP curve
     this.graphics.selectAll('.qa-line').remove();
     let lineData = _.map(d3.range(0, 3, 0.01), cpv => {
-      return {cpv: cpv, aepf: 18000 / (1.1 * cpv / 0.018)}
+      return {cpv: cpv, aepf: this.powerLine*60 / (1.1 * cpv / 0.018)}
     });
     lineData = _.filter(lineData, (x) => x.aepf < 700);
-    var line = d3.svg.line()
-      .x(d => this.xScale(d.cpv))
-      .y(d => this.yScale(d.aepf));
+    var line = d3.svg.line().x(d => this.xScale(d.cpv)).y(d => this.yScale(d.aepf));
     this.graphics.append('path').attr('class', 'ftp line qa-line').attr('d', line(lineData));
 
     // Quadrant lines
     this.graphics.append("line")
       .attr('class', 'quadrant-line qa-line')
-      .attr("x1", this.xScale(1.5)).attr("x2", this.xScale(1.5))
+      .attr("x1", this.xScale(this.cadenceLine * 0.018)).attr("x2", this.xScale(this.cadenceLine * 0.018))
       .attr("y1", this.yScale(0)).attr("y2", this.yScale(700));
     this.graphics.append("line")
       .attr('class', 'quadrant-line qa-line')
       .attr("x1", this.xScale(0)).attr("x2", this.xScale(3.0))
-      .attr("y1", this.yScale(200)).attr("y2", this.yScale(200));
+      .attr("y1", this.yScale(this.powerLine/this.cadenceLine*55.5)).attr("y2", this.yScale(this.powerLine/this.cadenceLine*55.5));
   }
 
   linearKernel(p1:AepfCpv, p2:AepfCpv) {
@@ -181,6 +183,14 @@ export class Chart implements OnInit {
         } else {
           this.drawChart(this.distanceFilter.filter(event.viewport).top(Infinity));
         }
-      })
+      });
+    this.controls.powerLine.filter(x=>!_.isNaN(x)).subscribe(p=> {
+      this.powerLine = p;
+      this.drawLines();
+    });
+    this.controls.cadenceLine.filter(x=>!_.isNaN(x)).subscribe(c=> {
+      this.cadenceLine = c;
+      this.drawLines();
+    })
   }
 }

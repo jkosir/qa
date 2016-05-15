@@ -7,7 +7,7 @@ import {BehaviorSubject} from "rxjs/Rx";
 import {MDL} from "../../mdl";
 
 export class BrushEvent {
-  viewport:[number, number];
+  viewport:Array<number>;
   type:string;
 
 
@@ -20,7 +20,8 @@ export class BrushEvent {
 export interface Controls {
   brush:Subject<BrushEvent>;
   updateType:Subject<string>;
-  powerLine:number;
+  powerLine:Subject<number>;
+  cadenceLine:Subject<number>;
 }
 
 @Component({
@@ -35,7 +36,8 @@ export class QuadrantAnalysis {
   public controls:Controls = {
     brush: new Subject(),
     updateType: new BehaviorSubject('brushend'),
-    powerLine: 300
+    powerLine: new BehaviorSubject(280),
+    cadenceLine: new BehaviorSubject(90)
   };
 
   constructor(public activity:ActivityService) {
@@ -43,6 +45,14 @@ export class QuadrantAnalysis {
 
   updateTypeChange(event) {
     this.controls.updateType.next(event.currentTarget.checked ? 'brush' : 'brushend');
+  }
+
+  updatePowerLine(event) {
+    this.controls.powerLine.next(Number(event.currentTarget.value));
+  }
+
+  updateCadenceLine(event) {
+    this.controls.cadenceLine.next(Number(event.currentTarget.value));
   }
 
 }
