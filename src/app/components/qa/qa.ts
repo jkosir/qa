@@ -28,7 +28,7 @@ export interface Controls {
   selector: 'qa',
   template: require('raw!./qa.html'),
   providers: [ActivityService],
-  styleUrls: ['app/components/qa/qa.css'],
+  styles: [require('./qa.css').toString()],
   directives: [Chart, NavigationChart, MDL],
   encapsulation: ViewEncapsulation.None,
 })

@@ -11,7 +11,7 @@ var tip = require('d3-tip');
 @Component({
   selector: 'chart',
   template: '',
-  styleUrls: ['app/components/chart/chart.css'],
+  styles: [require('./chart.css').toString()],
   encapsulation: ViewEncapsulation.None,
 })
 export class Chart implements OnInit {

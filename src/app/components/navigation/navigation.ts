@@ -11,7 +11,7 @@ import {BrushEvent} from "../qa/qa";
 @Component({
   selector: 'navigation-chart',
   template: '',
-  styleUrls: ['app/components/navigation/navigation.css'],
+  styles: [require('./navigation.css').toString()],
   encapsulation: ViewEncapsulation.None,
 })
 export class NavigationChart implements OnInit {

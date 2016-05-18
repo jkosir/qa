@@ -52,10 +52,10 @@ export class ActivityService {
   }
 
   public stravaAuth() {
-    OAuth.popup('strava').done(r=>{
+    OAuth.popup('strava').done((r:any)=> {
       this.stravaConnected = true;
-      this.api=r;
-      r.me().done(response=>this.user=response);
+      this.api = r;
+      r.me().done(response=>this.user = response);
     });
   }
 
