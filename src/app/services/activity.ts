@@ -48,7 +48,7 @@ export class ActivityService {
 
   constructor(private http:Http) {
     OAuth.initialize('Zcy9H_R3eAhBKyDr1sO_db3wLcA');
-    this.http.get('/app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
+    this.http.get('app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
   }
 
   public stravaAuth() {
