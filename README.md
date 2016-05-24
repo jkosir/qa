@@ -14,3 +14,6 @@ Bottom chart can be used to filter a subset of points to display and shows activ
 * Magenta line: power
 * Gray background area: altitude
 
+## Website
+[http://jkosir.net/qa/](http://jkosir.net/qa/)
+
