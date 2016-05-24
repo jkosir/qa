@@ -7,6 +7,7 @@ Based on [angular2-seed](https://github.com/angular/angular2-seed), using ``angu
 ## About
 Top scatterplot displays relationship between muscle force and contraction speed. Point colour indicates density, 
 which is calculated on the fronted, using kernel density estimation with linear kernel.
+
 Bottom chart can be used to filter a subset of points to display and shows activity in strava style:
 
 * Blue line: speed
