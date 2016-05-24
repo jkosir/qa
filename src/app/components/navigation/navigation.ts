@@ -32,6 +32,12 @@ export class NavigationChart implements OnInit {
       .append('g')
       .attr('transform', 'translate(' + this.margin.left + ',' + this.margin.top + ')');
 
+  navChart.append("text")
+      .attr("x", 0)
+      .attr("y", -8)
+      .style("font-size", "16px")
+      .text("Navigation");
+
 
     this.service.getVelocity()
       .map(data => _.filter(data, (val, idx) => idx % 10 == 0)) // Every n-th element

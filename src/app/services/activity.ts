@@ -3,6 +3,7 @@ import {Http} from 'angular2/http';
 import * as _ from 'underscore';
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
+import {BehaviorSubject} from "rxjs/Rx";
 
 var OAuth = require('oauthio-web').OAuth;
 
@@ -42,13 +43,13 @@ export class NavigationChartPoint {
 @Injectable()
 export class ActivityService {
   private api:any;
-  private activityLoader:Subject<any> = new Subject();
+  private activityLoader:BehaviorSubject<any>;
   public stravaConnected:boolean = false;
   public user:any;
 
   constructor(private http:Http) {
     OAuth.initialize('Zcy9H_R3eAhBKyDr1sO_db3wLcA');
-    this.http.get('app/data/act.json').subscribe(d => this.activityLoader.next(d.json()));
+    this.activityLoader = new BehaviorSubject(this.transformStravaResponse(require('json!../data/sample-activity.json')));
   }
 
   public stravaAuth() {
@@ -59,11 +60,14 @@ export class ActivityService {
     });
   }
 
+  transformStravaResponse(response) {
+    return _.object(_.zip(_.pluck(response, 'type'), _.pluck(response, 'data')));
+  }
+
   loadFromStrava(activityId) {
     let url = `/v3/activities/${activityId}/streams/watts,cadence,distance,velocity_smooth,altitude`;
     this.api.get(url).done(response => {
-      let data = _.object(_.zip(_.pluck(response, 'type'), _.pluck(response, 'data')));
-      this.activityLoader.next(data);
+      this.activityLoader.next(this.transformStravaResponse(response));
     });
   }
 
