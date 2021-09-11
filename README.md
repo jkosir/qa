@@ -15,5 +15,5 @@ Bottom chart can be used to filter a subset of points to display and shows activ
 * Gray background area: altitude
 
 ## Website
-[http://jkosir.net/qa/](http://jkosir.net/qa/)
+[https://jkosir.github.io/qa/](https://jkosir.github.io/qa/)
 
